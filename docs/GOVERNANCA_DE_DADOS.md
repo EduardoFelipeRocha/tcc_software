@@ -6,14 +6,15 @@ Cada fato relevante deve possuir fonte, documento, versão, data de verificaçã
 
 Naturezas iniciais:
 
-- `oficial_atual`;
-- `oficial_historico`;
-- `projecao`;
-- `demonstracao`.
+- `official_current`;
+- `official_historical`;
+- `projection`;
+
+Registros fictícios não são aceitos no catálogo público.
 
 ## Situações
 
-O backend deverá registrar eventos e calcular a situação exibida. Não deve simplesmente sobrescrever um texto de status.
+O backend já recalcula abertura e encerramento da janela de inscrições pelas datas oficiais e pelo fuso de Brasília. A evolução para o modelo de eventos abaixo continua necessária para retificações, suspensão, prova e homologação; esses fatos não devem simplesmente sobrescrever o histórico.
 
 | Situação | Evidência mínima |
 |---|---|
@@ -36,14 +37,21 @@ Na interface, “ativo” deve ser substituído por grupos compreensíveis: insc
 
 ## Fontes iniciais
 
-- [MGI — Autorizações e provimentos](https://www.gov.br/gestao/pt-br/acesso-a-informacao/servidores/concursos-publicos/autorizacoes-e-provimentos)
-- [Diário Oficial da União](https://www.in.gov.br/consulta/-/buscar/dou)
+- [MGI — Autorizações e provimentos](https://www.gov.br/servidor/pt-br/observatorio-de-pessoal-govbr/autorizacoes-e-provimentos-concursos)
+- [INLABS — Imprensa Nacional](https://inlabs.in.gov.br/acessar.php)
+- [Dados abertos da Imprensa Nacional](https://www.gov.br/imprensanacional/pt-br/acesso-a-informacao/dados-abertos)
 - [API pública do PNCP](https://pncp.gov.br/api/consulta/swagger-ui/index.html)
 - [IOERJ — Diário Oficial do Estado do RJ](https://www.ioerj.com.br/portal/modules/conteudoonline/busca_do.php?acao=busca)
 - [Diário Oficial do Município do Rio](https://doweb.rio.rj.gov.br/)
 - [Portal de Concursos da Prefeitura do Rio](https://www.rio.rj.gov.br/web/portaldeconcursos/home)
 
 O PNCP pode indicar seleção ou contratação de banca, mas não prova isoladamente que um edital está aberto.
+
+## Sincronização implementada
+
+A API aceita feeds estruturados de provedores configurados, atualiza-os periodicamente e publica metadados de saúde e cobertura. Um feed remoto precisa vincular cada concurso a uma fonte oficial HTTPS, data de coleta e hash SHA-256; projeções e evidências ausentes são rejeitadas. Cache condicional, assinatura HMAC opcional e estratégia de último snapshot válido protegem o catálogo de falhas externas.
+
+Contrato, configuração e SLA recomendado: [Atualização contínua do catálogo](./ATUALIZACAO_CATALOGO.md).
 
 ## Modelo futuro
 
@@ -71,3 +79,6 @@ Regras:
 - Encaminhar conflitos entre fontes para revisão humana;
 - Guardar hash do documento para detectar alterações;
 - Registrar a versão do algoritmo que gerou cada plano.
+- Guardar no plano um instantâneo do edital-base, do material histórico de apoio e dos tópicos utilizados;
+- Exigir seleção de cargo/área antes do plano quando um edital reúne programas distintos;
+- Preservar planos antigos sem atribuir a eles uma proveniência oficial inexistente.

@@ -12,11 +12,16 @@ import {
 } from 'lucide-react'
 import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import type { Contest } from '../entities/contest/types'
+import type { CatalogMeta, Contest } from '../entities/contest/types'
 import { contestRepository } from '../data/repositories/contestRepository'
 import { ContestCard } from '../shared/ui/ContestCard'
 
-const suggestions = ['Bombeiros RJ', 'Nível médio no RJ', 'Área fiscal', 'Concursos federais']
+const suggestions: Array<{ label: string; params: Record<string, string> }> = [
+  { label: 'Bombeiros RJ', params: { q: 'Bombeiros RJ' } },
+  { label: 'Nível médio no RJ', params: { escolaridade: 'Nível médio', uf: 'RJ' } },
+  { label: 'Área fiscal', params: { q: 'fiscal' } },
+  { label: 'Concursos federais', params: { esfera: 'Federal' } },
+]
 
 const journey = [
   {
@@ -49,9 +54,11 @@ export function HomePage() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [featured, setFeatured] = useState<Contest[]>([])
+  const [catalogMeta, setCatalogMeta] = useState<CatalogMeta | null>(null)
 
   useEffect(() => {
     void contestRepository.getFeatured().then(setFeatured)
+    void contestRepository.getCatalog().then((catalog) => setCatalogMeta(catalog.meta))
   }, [])
 
   const submitSearch = (event: FormEvent) => {
@@ -61,10 +68,14 @@ export function HomePage() {
     navigate(`/concursos${params.size ? `?${params.toString()}` : ''}`)
   }
 
-  const chooseSuggestion = (suggestion: string) => {
-    setQuery(suggestion)
-    navigate(`/concursos?q=${encodeURIComponent(suggestion)}`)
+  const chooseSuggestion = (suggestion: (typeof suggestions)[number]) => {
+    setQuery(suggestion.label)
+    navigate(`/concursos?${new URLSearchParams(suggestion.params).toString()}`)
   }
+
+  const latestVerificationLabel = catalogMeta?.newestVerification
+    ? `Verificado em ${new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(new Date(`${catalogMeta.newestVerification}T12:00:00`))}`
+    : 'Carregando fontes'
 
   return (
     <>
@@ -74,7 +85,7 @@ export function HomePage() {
           <div className="hero-copy reveal">
             <p className="kicker"><Sparkles size={15} /> Preparação com contexto, não com promessas</p>
             <h1>
-              Seu próximo cargo começa com um <span>rumo claro.</span>
+              Seu próximo cargo começa com um <span>plano claro.</span>
             </h1>
             <p className="hero-lead">
               Descubra concursos de todas as regiões, entenda cada etapa e receba um plano de estudos
@@ -98,8 +109,8 @@ export function HomePage() {
               <div className="search-suggestions" aria-label="Sugestões de busca">
                 <span>Tente:</span>
                 {suggestions.map((suggestion) => (
-                  <button key={suggestion} type="button" onClick={() => chooseSuggestion(suggestion)}>
-                    {suggestion}
+                  <button key={suggestion.label} type="button" onClick={() => chooseSuggestion(suggestion)}>
+                    {suggestion.label}
                   </button>
                 ))}
               </div>
@@ -112,7 +123,7 @@ export function HomePage() {
             </div>
           </div>
 
-          <aside className="radar-panel reveal reveal-delay" aria-label="Radar de oportunidades demonstrativo">
+          <aside className="radar-panel reveal reveal-delay" aria-label="Radar de oportunidades verificadas">
             <div className="radar-orbit radar-orbit-one" aria-hidden="true" />
             <div className="radar-orbit radar-orbit-two" aria-hidden="true" />
             <div className="radar-panel-header">
@@ -120,7 +131,7 @@ export function HomePage() {
                 <p className="eyebrow light">Radar de oportunidades</p>
                 <h2>O que está em movimento</h2>
               </div>
-              <span className="live-indicator">Demonstração</span>
+              <span className="live-indicator">{latestVerificationLabel}</span>
             </div>
             <div className="radar-list">
               {featured.map((contest, index) => (
@@ -143,10 +154,25 @@ export function HomePage() {
 
       <section className="signal-strip" aria-label="Pilares do projeto">
         <div className="container signal-grid">
-          <div><strong>Brasil inteiro</strong><span>arquitetura de cobertura nacional</span></div>
+          <div><strong>Brasil</strong><span>concursos de diferentes regiões</span></div>
           <div><strong>Fonte à vista</strong><span>cada fato com origem e verificação</span></div>
           <div><strong>Pré-edital seguro</strong><span>histórico nunca se passa por atual</span></div>
           <div><strong>Plano vivo</strong><span>rotina que se adapta ao desempenho</span></div>
+        </div>
+      </section>
+
+      <section className="status-entry-section" aria-labelledby="status-entry-title">
+        <div className="container status-entry-grid">
+          <div>
+            <p className="kicker">Radar por situação</p>
+            <h2 id="status-entry-title">Vá direto ao momento que importa.</h2>
+          </div>
+          <nav className="status-entry-actions" aria-label="Atalhos do catálogo">
+            <Link to="/concursos?status=registration_open"><span className="status-dot open" /> Inscrições abertas <ArrowRight size={16} /></Link>
+            <Link to="/concursos?status=notice_published"><span className="status-dot notice" /> Editais publicados <ArrowRight size={16} /></Link>
+            <Link to="/concursos?status=preparation"><span className="status-dot expected" /> Em preparação <ArrowRight size={16} /></Link>
+            <Link to="/provas-anteriores"><span className="status-dot previous" /> Provas anteriores <ArrowRight size={16} /></Link>
+          </nav>
         </div>
       </section>
 
@@ -158,7 +184,7 @@ export function HomePage() {
               <h2>Comece pela oportunidade certa.</h2>
             </div>
             <div className="heading-aside">
-              <p>Cenários para validar a experiência. Dados oficiais entram após curadoria.</p>
+              <p>Informações conferidas em editais e páginas oficiais em 12/08/2026.</p>
               <Link className="text-link" to="/concursos">Ver todos <ArrowRight size={16} /></Link>
             </div>
           </div>
@@ -194,13 +220,13 @@ export function HomePage() {
             <p className="kicker light">Planejamento adaptativo</p>
             <h2>Um plano que explica por que cada matéria está ali.</h2>
             <p>
-              A distribuição combina o peso histórico da prova, sua familiaridade com cada disciplina e
-              as horas realmente disponíveis na semana.
+              A distribuição combina a prioridade documentada no catálogo, sua familiaridade com cada
+              disciplina e as horas realmente disponíveis na semana.
             </p>
             <ul className="check-list">
               <li><CircleCheckBig /> Prioridades reproduzíveis e transparentes</li>
               <li><CircleCheckBig /> Blocos de teoria, questões e revisão</li>
-              <li><CircleCheckBig /> Base histórica identificada no plano</li>
+              <li><CircleCheckBig /> Documento oficial usado identificado no plano</li>
             </ul>
             <Link className="button button-accent" to="/planejamento/novo">
               Criar meu primeiro plano <ArrowRight size={18} />
@@ -225,7 +251,7 @@ export function HomePage() {
               </div>
             ))}
             <div className="week-card-footer">
-              <Sparkles size={16} /> Exemplo baseado em cenário demonstrativo
+              <Sparkles size={16} /> Visualização do formato do plano de estudos
             </div>
           </div>
         </div>

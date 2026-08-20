@@ -5,8 +5,18 @@ export interface StudySession {
   weekday: string
   subjectId: string
   subjectName: string
+  topic: string
   minutes: number
   kind: SessionKind
+}
+
+export interface PlanSubjectSummary {
+  id: string
+  name: string
+  topics: string[]
+  priority: number
+  sessionCount: number
+  totalMinutes: number
 }
 
 export interface StoredStudyPlan {
@@ -17,8 +27,18 @@ export interface StoredStudyPlan {
   contestTitle: string
   organization: string
   referenceLabel: string
+  referenceType: 'current_notice' | 'previous_notice' | 'official_exam' | 'legacy_unverified'
+  referenceUrl: string
+  referenceNote: string
+  referenceYear?: number
+  previousEditionLabel?: string
+  previousEditionUrl?: string
+  previousEditionYear?: number
+  previousEditionNote?: string
+  weightingBasis: 'official_distribution' | 'balanced_syllabus'
   generatedAt: string
   hoursPerWeek: number
   weekdays: string[]
   sessions: StudySession[]
+  subjects: PlanSubjectSummary[]
 }

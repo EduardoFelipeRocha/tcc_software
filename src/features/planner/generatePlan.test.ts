@@ -15,13 +15,26 @@ const contest: Contest = {
   area: 'Administrativa',
   education: ['Nível médio'],
   phase: 'expected',
-  evidence: 'demonstration',
+  evidence: 'official_current',
   shortDescription: 'Fixture de teste',
   openingsLabel: 'A confirmar',
   salaryLabel: 'A confirmar',
   deadlineLabel: 'Sem prazo',
+  feeLabel: 'R$ 10,00',
+  organizer: 'Banca de teste',
+  lastVerified: '2026-08-12',
+  officialUrl: 'https://example.gov.br',
   featured: false,
   sourceIds: [],
+  studyBasis: 'official_syllabus',
+  studyReference: {
+    type: 'current_notice',
+    label: 'Edital de teste',
+    url: 'https://example.gov.br/edital.pdf',
+    note: 'Conteúdo usado somente na fixture.',
+    year: 2026,
+    contentVerifiedAt: '2026-08-12',
+  },
   previousEdition: { label: 'Edição de teste', note: 'Fixture' },
   subjects: [
     { id: 'a', name: 'Matéria A', historicalWeight: 60, topics: [] },
@@ -74,6 +87,29 @@ describe('generatePlan', () => {
     const sessionsB = plan.sessions.filter((session) => session.subjectId === 'b').length
 
     expect(sessionsA).toBeGreaterThan(sessionsB)
+  })
+
+  it('cobre todas as matérias quando existem sessões suficientes', () => {
+    const expandedContest = {
+      ...contest,
+      subjects: [
+        ...contest.subjects,
+        { id: 'c', name: 'Matéria C', historicalWeight: 5, topics: ['Tópico C'] },
+        { id: 'd', name: 'Matéria D', historicalWeight: 5, topics: ['Tópico D'] },
+      ],
+    }
+    const plan = generatePlan({
+      contest: expandedContest,
+      hoursPerWeek: 4,
+      weekdays: ['SEG', 'TER'],
+      knowledge: {},
+    })
+
+    expect(plan.sessions).toHaveLength(5)
+    expect(new Set(plan.sessions.map((session) => session.subjectId))).toEqual(
+      new Set(expandedContest.subjects.map((subject) => subject.id)),
+    )
+    expect(plan.subjects.every((subject) => subject.sessionCount >= 1)).toBe(true)
   })
 
   it('recusa disponibilidade inválida', () => {

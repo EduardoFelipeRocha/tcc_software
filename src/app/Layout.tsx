@@ -2,31 +2,36 @@ import {
   BookOpenCheck,
   Compass,
   Home,
+  LogIn,
   Menu,
   Route,
   ShieldCheck,
+  UserRound,
   X,
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { DemoNotice } from '../shared/ui/DemoNotice'
+import { ProfileAvatar } from '../features/auth/ProfileAvatar'
+import { useAuth } from '../features/auth/useAuth'
 import { Logo } from '../shared/ui/Logo'
+import { ThemeToggle } from '../shared/ui/ThemeToggle'
 
 const navItems = [
   { to: '/concursos', label: 'Explorar concursos' },
+  { to: '/provas-anteriores', label: 'Provas anteriores' },
   { to: '/meu-plano', label: 'Meu plano' },
   { to: '/metodologia', label: 'Como funciona' },
 ]
 
 export function Layout() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { user, loading } = useAuth()
 
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
         Pular para o conteúdo
       </a>
-      <DemoNotice />
       <header className="site-header">
         <div className="container header-inner">
           <Logo />
@@ -38,10 +43,18 @@ export function Layout() {
             ))}
           </nav>
           <div className="header-actions">
-            <Link className="button button-secondary header-plan" to="/planejamento/novo">
-              Criar meu plano
-              <Route size={17} aria-hidden="true" />
-            </Link>
+            <ThemeToggle />
+            {!loading && (user ? (
+              <Link className="account-button" to="/conta" aria-label="Abrir minha conta">
+                <ProfileAvatar avatar={user.avatar} name={user.name} className="header-profile-avatar" />
+                <b>{user.name.split(' ')[0]}</b>
+              </Link>
+            ) : (
+              <div className="auth-actions">
+                <Link className="login-link" to="/entrar"><LogIn size={16} /> Entrar</Link>
+                <Link className="button button-primary register-link" to="/cadastro">Criar conta</Link>
+              </div>
+            ))}
             <button
               className="icon-button mobile-menu-button"
               type="button"
@@ -61,9 +74,14 @@ export function Layout() {
                   {item.label}
                 </NavLink>
               ))}
-              <Link className="button button-primary" to="/planejamento/novo" onClick={() => setMenuOpen(false)}>
-                Criar meu plano
-              </Link>
+              {user ? (
+                <Link className="button button-primary" to="/conta" onClick={() => setMenuOpen(false)}><UserRound size={17} /> Minha conta</Link>
+              ) : (
+                <div className="mobile-auth-actions">
+                  <Link className="button button-secondary" to="/entrar" onClick={() => setMenuOpen(false)}>Entrar</Link>
+                  <Link className="button button-primary" to="/cadastro" onClick={() => setMenuOpen(false)}>Criar conta</Link>
+                </div>
+              )}
             </div>
           </nav>
         )}
@@ -82,6 +100,7 @@ export function Layout() {
           <div>
             <h2>Produto</h2>
             <Link to="/concursos">Explorar concursos</Link>
+            <Link to="/provas-anteriores">Provas anteriores</Link>
             <Link to="/planejamento/novo">Criar plano</Link>
             <Link to="/metodologia">Metodologia</Link>
           </div>
@@ -93,8 +112,8 @@ export function Layout() {
           </div>
         </div>
         <div className="container footer-bottom">
-          <p>Rumo é um protótipo acadêmico de TCC. Nome provisório.</p>
-          <p>© 2026 Projeto Rumo</p>
+          <p>Dados verificados em fontes oficiais. Consulte sempre o edital vigente.</p>
+          <p>© 2026 GuiaConcursos</p>
         </div>
       </footer>
 

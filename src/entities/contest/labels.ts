@@ -3,6 +3,7 @@ import type { ContestPhase, EvidenceKind } from './types'
 export const phaseLabels: Record<ContestPhase, string> = {
   registration_open: 'Inscrições abertas',
   notice_published: 'Edital publicado',
+  in_progress: 'Em andamento',
   organizer_selected: 'Banca definida',
   committee_formed: 'Comissão formada',
   authorized: 'Autorizado',
@@ -14,5 +15,4 @@ export const evidenceLabels: Record<EvidenceKind, string> = {
   official_current: 'Informação oficial atual',
   official_historical: 'Dado oficial histórico',
   projection: 'Projeção, não confirmada',
-  demonstration: 'Cenário demonstrativo',
 }

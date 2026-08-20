@@ -8,7 +8,7 @@ export function NotFoundPage() {
         <span><Compass size={38} /></span>
         <p className="eyebrow">Erro 404</p>
         <h1>Esse caminho ainda não está no mapa.</h1>
-        <p>Volte ao início ou explore as oportunidades disponíveis no protótipo.</p>
+        <p>Volte ao início ou explore as oportunidades verificadas no catálogo.</p>
         <div>
           <Link className="button button-secondary" to="/"><ArrowLeft size={17} /> Ir para o início</Link>
           <Link className="button button-primary" to="/concursos">Explorar concursos</Link>

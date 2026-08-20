@@ -1,11 +1,12 @@
 import {
   ArrowUpRight,
-  Bookmark,
   Building2,
   GraduationCap,
   MapPin,
+  WalletCards,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { isContestVerificationStale } from '../../data/catalog/catalogRules'
 import type { Contest } from '../../entities/contest/types'
 import { EvidenceBadge, PhaseBadge } from './StatusBadge'
 
@@ -15,13 +16,13 @@ interface ContestCardProps {
 }
 
 export function ContestCard({ contest, compact = false }: ContestCardProps) {
+  const verificationIsStale = isContestVerificationStale(contest)
+
   return (
     <article className={`contest-card${compact ? ' contest-card-compact' : ''}`}>
       <div className="contest-card-topline">
         <PhaseBadge phase={contest.phase} />
-        <button className="save-button" type="button" aria-label={`Salvar ${contest.title}`}>
-          <Bookmark size={18} />
-        </button>
+        <span className="verified-source-mark">Fonte oficial</span>
       </div>
 
       <div className="organization-row">
@@ -57,15 +58,23 @@ export function ContestCard({ contest, compact = false }: ContestCardProps) {
             <dd>{contest.governmentLevel}</dd>
           </div>
         )}
+        {!compact && (
+          <div>
+            <dt><WalletCards size={15} aria-hidden="true" /> Remuneração</dt>
+            <dd>{contest.salaryLabel}</dd>
+          </div>
+        )}
       </dl>
 
       <div className="contest-card-footer">
         <div>
           <EvidenceBadge evidence={contest.evidence} />
-          <span className="card-helper">Dados ainda não validados</span>
+          <span className={`card-helper${verificationIsStale ? ' is-stale' : ''}`}>
+            {verificationIsStale ? 'Revisão pendente desde' : 'Verificado em'} {new Intl.DateTimeFormat('pt-BR').format(new Date(`${contest.lastVerified}T12:00:00`))}
+          </span>
         </div>
         <Link className="card-link" to={`/concursos/${contest.slug}`}>
-          Ver cenário <ArrowUpRight size={16} aria-hidden="true" />
+          Ver detalhes <ArrowUpRight size={16} aria-hidden="true" />
         </Link>
       </div>
     </article>

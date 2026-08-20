@@ -8,3 +8,10 @@ playwright-report
 .env
 .env.*
 !.env.example
+server/data.json
+server/catalog-cache.json
+server/catalog-cache.json.tmp
+server/catalog-suggestions.json
+server/catalog-suggestions.json.tmp
+server/catalog-suggestions.ndjson
+server/discovery-events.ndjson

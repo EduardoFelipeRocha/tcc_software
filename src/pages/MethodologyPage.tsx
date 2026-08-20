@@ -17,29 +17,40 @@ const statusGroups = [
   ['Edital publicado', 'O documento oficial existe; as inscrições podem ainda não ter começado.'],
   ['Em preparação', 'Inclui autorização, comissão ou contratação de banca comprovada por ato.'],
   ['Previsto', 'Há um sinal oficial de intenção, mas não há confirmação de edital.'],
-  ['Em andamento', 'As inscrições terminaram, porém provas, recursos ou resultados ainda ocorrem.'],
+  ['Em andamento', 'As inscrições terminaram, porém provas, recursos, resultados ou homologação ainda estão em curso.'],
+  ['Encerrado / histórico', 'A seleção saiu do radar ativo, mas edital, prova e gabarito continuam disponíveis quando oficiais.'],
 ]
 
 const officialSources = [
   {
     name: 'MGI — Autorizações e provimentos',
     scope: 'Executivo federal',
-    url: 'https://www.gov.br/gestao/pt-br/acesso-a-informacao/servidores/concursos-publicos/autorizacoes-e-provimentos',
+    url: 'https://www.gov.br/servidor/pt-br/observatorio-de-pessoal-govbr/autorizacoes-e-provimentos-concursos',
   },
   {
-    name: 'Diário Oficial da União',
-    scope: 'Atos e editais federais',
-    url: 'https://www.in.gov.br/consulta/-/buscar/dou',
+    name: 'INLABS — Imprensa Nacional',
+    scope: 'XML e PDF diários do DOU',
+    url: 'https://inlabs.in.gov.br/acessar.php',
   },
   {
-    name: 'IOERJ — Diário Oficial do Estado',
-    scope: 'Estado do Rio de Janeiro',
-    url: 'https://www.ioerj.com.br/portal/modules/conteudoonline/busca_do.php?acao=busca',
+    name: 'Dados Abertos da Imprensa Nacional',
+    scope: 'Backfill dos atos publicados no DOU',
+    url: 'https://www.gov.br/imprensanacional/pt-br/acesso-a-informacao/dados-abertos',
   },
   {
-    name: 'Portal de Concursos do Rio',
-    scope: 'Município do Rio de Janeiro',
-    url: 'https://www.rio.rj.gov.br/web/portaldeconcursos/home',
+    name: 'Querido Diário — radar municipal',
+    scope: 'Descoberta automática; sinais ficam pendentes até validação',
+    url: 'https://docs.queridodiario.ok.org.br/pt-br/latest/utilizando/api-publica.html',
+  },
+  {
+    name: 'IBGE — códigos dos municípios',
+    scope: 'Identidade territorial; não é uma base de concursos',
+    url: 'https://servicodados.ibge.gov.br/api/docs/localidades',
+  },
+  {
+    name: 'PNCP — sinal de contratação de banca',
+    scope: 'Pista oficial; nunca tratado como edital',
+    url: 'https://pncp.gov.br/app/buscar/editais',
   },
 ]
 
@@ -52,7 +63,7 @@ export function MethodologyPage() {
             <p className="kicker light"><Fingerprint size={15} /> Transparência por construção</p>
             <h1>Confiança não é um selo. É conseguir conferir o caminho do dado.</h1>
             <p>
-              A Rumo foi desenhada para diferenciar documento, fato histórico e projeção — e explicar como
+              A plataforma GuiaConcursos foi desenhada para diferenciar documento, fato histórico e projeção — e explicar como
               cada um influencia o plano de estudos.
             </p>
           </div>
@@ -68,7 +79,7 @@ export function MethodologyPage() {
         <div className="section-heading">
           <p className="kicker">Situação do concurso</p>
           <h2>“Ativo” é amplo demais. Nós mostramos a etapa real.</h2>
-          <p>O estado exibido será calculado a partir de eventos documentados, sem apagar o histórico anterior.</p>
+          <p>O estado exibido combina o evento documentado com a janela oficial de inscrições; início e encerramento mudam automaticamente pela data, sem apagar o histórico.</p>
         </div>
         <div className="status-method-grid">
           {statusGroups.map(([title, description], index) => (
@@ -105,18 +116,22 @@ export function MethodologyPage() {
             <p className="kicker">Cobertura progressiva</p>
             <h2>Produto nacional, conectores por jurisdição.</h2>
             <p>
-              Não existe uma fonte única para todos os concursos brasileiros. O MVP começa pelo Executivo
-              federal, Estado do RJ e Município do Rio, deixando lacunas visíveis em vez de fingir cobertura total.
+              Não existe uma fonte única para todos os concursos brasileiros. A cobertura atual reúne uma
+              seleção multirregional conferida em fontes primárias. O radar municipal procura novos atos
+              automaticamente e os mantém pendentes até a etapa e a evidência serem validadas. Feeds
+              estruturados publicam as atualizações aprovadas sem exigir um novo build do site.
             </p>
             <ul className="check-list dark-check-list">
+              <li><Check /> Filtros, totais, UFs cobertas e registros desatualizados ficam visíveis</li>
+              <li><Check /> Falha de um conector nunca apaga o último catálogo válido</li>
               <li><Check /> Fontes privadas servem como pista, não como confirmação</li>
               <li><Check /> Retificações criam novas versões do documento</li>
-              <li><Check /> Botão de inscrição exige domínio oficial validado</li>
-              <li><Check /> Taxa histórica sempre mostra ano e edição</li>
+              <li><Check /> Extração automática descobre; fatos críticos exigem evidência oficial</li>
+              <li><Check /> Indicações da comunidade recebem protocolo e entram na fila de revisão</li>
             </ul>
           </div>
           <div className="official-source-list">
-            <p className="eyebrow">Fontes iniciais planejadas</p>
+            <p className="eyebrow">Fontes e radares de referência</p>
             {officialSources.map((source) => (
               <a href={source.url} key={source.name} target="_blank" rel="noreferrer">
                 <span><strong>{source.name}</strong><small>{source.scope}</small></span>
@@ -132,15 +147,16 @@ export function MethodologyPage() {
           <div className="algorithm-card">
             <Waypoints size={24} />
             <p className="eyebrow light">Algoritmo v1.0</p>
-            <code>prioridade = peso histórico × (1 + lacuna)</code>
+            <code>prioridade = base documentada × (1 + lacuna)</code>
             <p>O mesmo conjunto de respostas sempre produz a mesma distribuição inicial.</p>
           </div>
           <div>
             <p className="kicker">Plano explicável</p>
             <h2>A IA pode ajudar depois. A regra principal precisa ser auditável agora.</h2>
             <p>
-              No protótipo, a rotina usa um cálculo determinístico baseado no peso demonstrativo das matérias
-              e no nível informado. No produto real, os pesos virão da prova anterior validada.
+              Quando existe distribuição oficial, ela fundamenta o cálculo. Se o documento só trouxer o
+              conteúdo, qualquer divisão equilibrada será identificada como tal. Cards que misturam cargos
+              diferentes ficam bloqueados até a seleção do cargo, evitando uma trilha genérica enganosa.
             </p>
             <Link className="button button-primary" to="/planejamento/novo">Testar o planejamento <ArrowRight size={17} /></Link>
           </div>
